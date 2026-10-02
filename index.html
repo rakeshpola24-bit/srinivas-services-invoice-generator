@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
+<title>Invoice - Srinivas Services</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+a { color: inherit; text-decoration: none; }
+/* Prevent iOS from auto-linking phone numbers / dates */
+.inv-page * { -webkit-text-size-adjust: 100%; }
+button { font-family: Arial, sans-serif; cursor: pointer; }
+body { font-family: Arial, sans-serif; background: #e8e8e8; padding: 12px; }
+
+/* ===== TABS ===== */
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; background: white; padding: 10px 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); align-items: center; }
+.tab { padding: 9px 18px; border: 1.5px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 14px; background: white; color: #666; font-weight: 500; transition: all 0.2s; }
+.tab:hover { border-color: #f97316; color: #f97316; }
+.tab.active { background: #f97316; color: white; border-color: #f97316; font-weight: 600; }
+.action-btns { margin-left: auto; }
+.btn-dl { padding: 9px 18px; background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.btn-dl:hover { background: #e06010; }
+
+/* ===== SETTINGS ===== */
+label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; font-weight: 500; }
+input, select { width: 100%; padding: 8px 10px; border: 1.5px solid #e0e0e0; border-radius: 7px; font-size: 13px; background: white; color: #111; outline: none; transition: border 0.2s; }
+input:focus, select:focus { border-color: #f97316; }
+.field { margin-bottom: 12px; }
+.frow { display: flex; gap: 12px; flex-wrap: wrap; }
+.frow .field { flex: 1; min-width: 140px; }
+.stitle { font-size: 11px; font-weight: 700; color: #f97316; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.settings-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.settings-section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+.settings-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.add-rep-btn { margin-top: 8px; padding: 8px 16px; border: 1.5px dashed #f97316; border-radius: 8px; background: none; cursor: pointer; font-size: 13px; color: #f97316; font-weight: 500; }
+.add-rep-btn:hover { background: #fff5ef; }
+.rem-btn { padding: 6px 10px; border: none; background: #fff0f0; border-radius: 6px; cursor: pointer; font-size: 14px; color: #cc0000; margin-left: 6px; }
+.rep-note { font-size: 12px; color: #aaa; margin-bottom: 10px; }
+
+/* ===== SCALE WRAPPER ===== */
+.scale-outer { width: 100%; overflow: hidden; }
+.scale-inner { transform-origin: top left; display: inline-block; }
+
+/* ===== INVOICE PAGE ===== */
+.inv-page {
+  background: white;
+  width: 210mm; height: 297mm;
+  display: flex; flex-direction: column;
+  font-family: Arial, sans-serif;
+  color: #111;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header — full orange bar across top */
+.inv-hdr {
+  background: #111;
+  display: flex; align-items: center;
+  padding: 10mm 12mm 8mm 12mm;
+  flex-shrink: 0;
+  position: relative;
+  gap: 16px;
+}
+.inv-hdr-left {
+  display: flex; align-items: center; gap: 16px;
+  flex: 1;
+}
+.inv-brand-name {
+  font-size: 44px; font-weight: 900; letter-spacing: 3px;
+  color: white; line-height: 1;
+  font-family: Arial Black, Arial, sans-serif;
+}
+.inv-brand-services {
+  font-size: 14px; font-weight: 700; letter-spacing: 12px;
+  color: #f97316; margin-top: 4px;
+}
+.inv-brand-phone {
+  display: flex; align-items: center; gap: 7px;
+  margin-top: 8px; font-size: 14px; color: #ccc; font-weight: 600;
+}
+.inv-hdr-orange {
+  position: absolute; top: 0; right: 0;
+  width: 180px; height: 100%;
+  background: #f97316;
+  clip-path: polygon(35% 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+/* Orange sub-bar under header */
+.inv-hdr-subbar {
+  height: 6px; background: #f97316; flex-shrink: 0;
+}
+
+/* Body table area */
+.inv-body {
+  margin: 6mm 12mm 0;
+  border: 2px solid #111;
+  flex-shrink: 0;
+}
+
+/* Client + Date row */
+.inv-client-date { display: flex; border-bottom: 2px solid #111; }
+.inv-client { flex: 1; padding: 14px 16px; border-right: 2px solid #111; }
+.inv-client-label { font-size: 11px; color: #f97316; margin-bottom: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.inv-client-name { font-size: 20px; font-weight: 900; color: #111; font-family: Arial Black, Arial, sans-serif; }
+.inv-client-addr { font-size: 13px; color: #333; margin-top: 6px; line-height: 1.8; }
+.inv-date-col { padding: 14px 16px; min-width: 260px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.inv-date-title { font-size: 15px; font-weight: 900; color: #111; letter-spacing: 0.3px; }
+.inv-period-row { display: flex; align-items: stretch; border: 2px solid #f97316; width: fit-content; border-radius: 4px; overflow: hidden; }
+.inv-period-label { background: #f97316; color: white; padding: 7px 14px; font-size: 11px; font-weight: 700; white-space: nowrap; display: flex; align-items: center; letter-spacing: 0.5px; }
+.inv-period-from { padding: 7px 14px; font-size: 11px; font-weight: 700; border-right: 1.5px solid #f97316; display: flex; align-items: center; color: #f97316; }
+.inv-period-sep { padding: 7px 10px; font-size: 10px; font-weight: 900; border-right: 1.5px solid #f97316; display: flex; align-items: center; color: #f97316; background: #fff8f3; }
+.inv-period-to { padding: 7px 14px; font-size: 11px; font-weight: 700; display: flex; align-items: center; color: #f97316; }
+
+/* Notice */
+.inv-notice { padding: 14px 16px; font-size: 13px; color: #333; border-bottom: 2px solid #111; line-height: 1.7; background: #fffaf6; }
+
+/* Table */
+.inv-table { width: 100%; border-collapse: collapse; }
+.inv-table th {
+  font-size: 11px; font-weight: 700; padding: 12px 6px;
+  border-right: 1.5px solid #fff; border-bottom: none;
+  text-align: center; color: white; line-height: 1.5;
+  background: #111; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.inv-table th:last-child { border-right: none; }
+.inv-table td {
+  font-size: 15px; padding: 40px 6px;
+  border-right: 1.5px solid #111; text-align: center; color: #111; font-weight: 500;
+}
+.inv-table td:nth-child(2) { text-align: left; padding-left: 12px; }
+.inv-table td:last-child { border-right: none; }
+
+/* Bottom: cheque + total */
+.inv-bottom { display: flex; border-top: 2px solid #111; }
+.inv-cheque-area { flex: 1; padding: 32px 16px; border-right: 2px solid #111; display: flex; flex-direction: column; justify-content: center; }
+.inv-cheque-line1 { font-size: 13px; color: #555; }
+.inv-cheque-name { font-size: 22px; font-weight: 900; color: #f97316; margin-top: 6px; font-family: Arial Black, Arial, sans-serif; }
+.inv-total-area { display: flex; flex-direction: row; min-width: 230px; }
+.inv-total-label { font-size: 20px; font-weight: 900; color: white; background: #111; flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 10px; border-right: 2px solid #f97316; }
+.inv-total-amt { font-size: 20px; font-weight: 900; color: white; background: #f97316; min-width: 120px; display: flex; align-items: center; justify-content: center; padding: 32px 10px; }
+
+/* Words */
+.inv-words-row { border-top: 2px solid #111; padding: 14px 16px; text-align: center; font-size: 13px; color: #111; font-weight: 500; background: #fffaf6; }
+.inv-words-label { font-weight: 700; color: #f97316; margin-right: 6px; }
+
+/* Signature */
+.inv-sign {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: flex-end; align-items: flex-end;
+  padding: 16px 14mm 14px; gap: 18px; font-size: 14px; color: #111; font-weight: 600;
+}
+
+/* Footer bar */
+.inv-footer { display: flex; height: 20px; flex-shrink: 0; margin-top: auto; }
+.inv-footer .fo { flex: 2; background: #f97316; }
+.inv-footer .fb { flex: 1; background: #111; }
+
+/* ===== ATTENDANCE ===== */
+.att-page {
+  background: white;
+  width: 210mm;
+  font-family: Arial, sans-serif;
+  color: #111;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+  display: flex;
+  padding: 10mm;
+}
+/* .att-side owns the outer frame */
+.att-side {
+  display: flex;
+  flex-direction: row;
+  border: 2px solid #111;
+  width: 100%;
+}
+.att-vtitle {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 5px;
+  border-right: 2px solid #111;
+  color: #111;
+  white-space: nowrap;
+  font-family: Arial Black, Arial, sans-serif;
+  flex-shrink: 0;
+}
+.att-main { flex: 1; overflow: hidden; }
+/* Each cell draws only right + bottom — never left or top — no doubling possible */
+table.att-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; border: none; }
+table.att-tbl td { border-top: none; border-left: none; border-right: 1px solid #555; border-bottom: 1px solid #555; font-size: 11px; color: #111; text-align: center; padding: 1px 2px; height: 20px; line-height: 1.2; }
+/* Last column: no right border (outer .att-side handles it) */
+table.att-tbl tr td:last-child { border-right: none; }
+/* Last row: no bottom border (outer .att-side handles it) */
+table.att-tbl tr:last-child td { border-bottom: none; }
+td.td-date { text-align: left; padding-left: 5px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+td.td-day  { text-align: left; font-size: 10.5px; padding-left: 3px; }
+td.sunday  { background: #d0d0d0; }
+.btn-P { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 900; color: #111; padding: 0; display: block; width: 100%; height: 100%; min-height: 18px; }
+.btn-P:hover { background: #f0fff0; }
+.btn-A { background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 900; color: #cc0000; padding: 0; display: block; width: 100%; height: 100%; min-height: 18px; }
+.btn-A:hover { background: #ffe8e8; }
+tr.ft-row td { border-top: none; border-left: none; border-right: 1px solid #111; border-bottom: 1px solid #111; background: #f2f2f2; padding: 0; overflow: hidden; }
+tr.ft-row td:last-child  { border-right: none; }
+tr.ft-row:last-child td  { border-bottom: none; }
+.ft-inner { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); font-weight: 700; font-size: 10px; color: #111; display: flex; align-items: center; justify-content: center; padding: 4px 2px; width: 100%; height: 100%; }
+.ft-inner.big { font-size: 13px; font-weight: 900; }
+.ft-inner.guard { font-size: 9px; font-weight: 700; white-space: normal; text-align: center; line-height: 1.3; }
+.ft-inner.small { font-size: 8px; font-weight: 500; white-space: normal; text-align: center; line-height: 1.3; }
+.att-summary-bar { padding: 10px 14px; background: white; border-top: 1px solid #eee; font-size: 12px; display: flex; gap: 20px; flex-wrap: wrap; color: #444; margin-top: 8px; }
+
+/* ===== MOBILE ===== */
+@media (max-width: 600px) {
+  body { padding: 6px; }
+  .tabs { padding: 8px; gap: 6px; }
+  .tab { padding: 7px 10px; font-size: 12px; }
+  .btn-dl { padding: 7px 12px; font-size: 12px; }
+  .frow .field { min-width: 100%; }
+  .settings-card { padding: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('invoice')">📄 Invoice</button>
+    <button class="tab" onclick="switchTab('attendance')">📋 Attendance Sheet</button>
+    <button class="tab" onclick="switchTab('settings')">⚙️ Edit Details</button>
+    <div class="action-btns">
+      <button class="btn-dl" onclick="printDoc()">🖨 Print / Save as PDF</button>
+    </div>
+  </div>
+
+  <!-- INVOICE -->
+  <div id="tab-invoice">
+    <div class="scale-outer" id="inv-scale-outer">
+      <div class="scale-inner" id="inv-scale-inner">
+        <div class="inv-page" id="invoice-preview">
+
+          <div class="inv-hdr">
+            <div class="inv-hdr-left">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                <ellipse cx="40" cy="28" rx="16" ry="18" fill="#fcd9b0"/>
+                <ellipse cx="24" cy="29" rx="4" ry="5" fill="#fcd9b0"/>
+                <ellipse cx="56" cy="29" rx="4" ry="5" fill="#fcd9b0"/>
+                <rect x="14" y="14" width="52" height="8" rx="3" fill="#f97316"/>
+                <rect x="22" y="4" width="36" height="14" rx="3" fill="#f97316"/>
+                <rect x="34" y="7" width="12" height="7" rx="2" fill="white"/>
+                <rect x="18" y="44" width="44" height="28" rx="6" fill="#f97316"/>
+                <rect x="30" y="44" width="20" height="10" rx="2" fill="#111"/>
+                <rect x="34" y="58" width="12" height="7" rx="2" fill="white"/>
+                <circle cx="40" cy="52" r="2" fill="#ffd700"/>
+              </svg>
+              <div>
+                <div class="inv-brand-name">SRINIVAS</div>
+                <div class="inv-brand-services">SERVICES</div>
+                <div class="inv-brand-phone">
+                  <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+                    <circle cx="11" cy="11" r="11" fill="#f97316"/>
+                    <path d="M7.5 8.5c.8 1.6 2.1 2.9 3.7 3.7l1.2-1.2c.2-.2.4-.2.6-.1.6.2 1.3.3 2 .3.3 0 .5.2.5.5V13c0 .3-.2.5-.5.5C9.6 13.5 6 9.9 6 5.5 6 5.2 6.2 5 6.5 5H8c.3 0 .5.2.5.5 0 .7.1 1.4.3 2 .1.2 0 .4-.1.6L7.5 9.3z" fill="white"/>
+                  </svg>
+                  <span id="pv-phone">9392868961</span>
+                </div>
+              </div>
+            </div>
+            <div class="inv-hdr-orange"></div>
+          </div>
+          <div class="inv-hdr-subbar"></div>
+
+          <div class="inv-body">
+            <div class="inv-client-date">
+              <div class="inv-client">
+                <div class="inv-client-label">INVOICE TO:</div>
+                <div class="inv-client-name" id="pv-client-name">M/S. Emerald Auditorium</div>
+                <div class="inv-client-addr" id="pv-client-addr">10-27-3, Waltair Uplands,<br>Ram Nagar,<br>Visakhapatnam - 530003</div>
+              </div>
+              <div class="inv-date-col">
+                <div class="inv-date-title">Invoice Date : <span id="pv-inv-date">01 - 05 - 2026</span></div>
+                <div class="inv-period-row">
+                  <div class="inv-period-label">Invoice Period</div>
+                  <div class="inv-period-from" id="pv-period-from">01 - Apr - 2026</div>
+                  <div class="inv-period-sep">TO</div>
+                  <div class="inv-period-to" id="pv-period-to">30 - Apr - 2026</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="inv-notice">We are presenting our bill for the month of <span id="pv-month">April - 2026</span> towards our Security Services provided at your establishment. Kindly release the payment at the earliest.</div>
+
+            <table class="inv-table">
+              <thead><tr>
+                <th style="width:7%">S.NO</th>
+                <th style="width:17%">CATEGORIES OF<br>PERSONNEL</th>
+                <th style="width:12%">TOTAL<br>NO. OF<br>PERSONS</th>
+                <th style="width:12%">RATE PER<br>MONTH</th>
+                <th style="width:10%">WORKING<br>DAYS</th>
+                <th style="width:12%">NUMBER<br>OF DUTIES</th>
+                <th style="width:14%">RATE PER<br>DAY/PERSON</th>
+                <th style="width:16%">NET AMOUNT<br>(Rs.)</th>
+              </tr></thead>
+              <tbody><tr>
+                <td>01</td>
+                <td>Security<br>Guards</td>
+                <td id="pv-persons">2</td>
+                <td id="pv-rate-month">11000.00</td>
+                <td id="pv-working-days">30</td>
+                <td id="pv-duties">60</td>
+                <td id="pv-rate-day">366.67</td>
+                <td id="pv-net-amt">22,000.00</td>
+              </tr></tbody>
+            </table>
+
+            <div class="inv-bottom">
+              <div class="inv-cheque-area">
+                <div class="inv-cheque-line1">Please issue a cheque in favour of</div>
+                <div class="inv-cheque-name" id="pv-cheque-name">P.N. SRINIVAS</div>
+              </div>
+              <div class="inv-total-area">
+                <div class="inv-total-label">TOTAL</div>
+                <div class="inv-total-amt" id="pv-total">22,000.00</div>
+              </div>
+            </div>
+
+            <div class="inv-words-row" id="pv-words"><span class="inv-words-label">Amount in Words:</span>Rupees Twenty Two Thousand and Paisa Nil Only</div>
+          </div>
+
+          <div class="inv-sign">
+            <div>For SRINIVAS SERVICES</div>
+            <div>Authorised Signature</div>
+          </div>
+
+          <div class="inv-footer"><div class="fo"></div><div class="fb"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div id="tab-attendance" style="display:none">
+    <div class="scale-outer" id="att-scale-outer">
+      <div class="scale-inner" id="att-scale-inner" style="width:1123px;box-shadow:0 2px 16px rgba(0,0,0,0.13);background:#fff;">
+        <div id="att-sheet"></div>
+      </div>
+    </div>
+    <div class="att-summary-bar" id="att-summary"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="tab-settings" style="display:none">
+    <div class="settings-card">
+      <div class="settings-section">
+        <div class="stitle">Permanent Guards (2 on duty every day)</div>
+        <div class="frow">
+          <div class="field"><label>Guard 1</label><input id="s-g1" value="V Prasad Rao" oninput="refreshAll()"></div>
+          <div class="field"><label>Guard 2</label><input id="s-g2" value="SHYAM" oninput="refreshAll()"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="stitle">Replacement Guards this month</div>
+        <div class="rep-note">Add only if a guard was absent and replaced. Invoice amount stays fixed — always 2 × rate.</div>
+        <div id="rep-area"></div>
+        <button class="add-rep-btn" onclick="addRep()">+ Add Replacement Guard</button>
+      </div>
+      <div class="settings-section">
+        <div class="stitle">Invoice Period</div>
+        <div class="frow">
+          <div class="field"><label>Month</label>
+            <select id="s-month" onchange="updateAll()">
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10" selected>October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+          <div class="field"><label>Year</label><input id="s-year" type="number" value="2026" oninput="updateAll()"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="stitle">Service Provider</div>
+        <div class="frow">
+          <div class="field"><label>Phone</label><input id="s-phone" value="9392868961" oninput="updateAll()"></div>
+          <div class="field"><label>Cheque Payable To</label><input id="s-cheque" value="P.N. SRINIVAS" oninput="updateAll()"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="stitle">Client Details</div>
+        <div class="field"><label>Client Name</label><input id="s-client-name" value="M/S. Emerald Auditorium" oninput="updateAll()"></div>
+        <div class="field"><label>Client Address (comma separated lines)</label><input id="s-client-addr" value="10-27-3, Waltair Uplands, Ram Nagar, Visakhapatnam - 530003" oninput="updateAll()"></div>
+      </div>
+      <div class="settings-section">
+        <div class="stitle">Rate & Location</div>
+        <div class="frow">
+          <div class="field"><label>Rate per Guard per Month (₹)</label><input id="s-rate" type="number" value="11000" oninput="updateAll()"></div>
+          <div class="field"><label>Location / Unit Name</label><input id="s-location" value="EMERALD APARTMENTS" oninput="updateAll()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var repGuards=[]; var attData={};
+var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var MS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var DN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+function getDays(m,y){return new Date(y,m,0).getDate();}
+function pad(n){return n<10?'0'+n:''+n;}
+function numWords(n){
+  var a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  var b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  if(!n)return'Zero';if(n<20)return a[n];if(n<100)return b[Math.floor(n/10)]+(n%10?' '+a[n%10]:'');
+  if(n<1000)return a[Math.floor(n/100)]+' Hundred'+(n%100?' '+numWords(n%100):'');
+  if(n<100000)return numWords(Math.floor(n/1000))+' Thousand'+(n%1000?' '+numWords(n%1000):'');
+  return numWords(Math.floor(n/100000))+' Lakh'+(n%100000?' '+numWords(n%100000):'');
+}
+function getAllGuards(){
+  var all=[document.getElementById('s-g1').value||'Guard 1',document.getElementById('s-g2').value||'Guard 2'];
+  for(var i=0;i<repGuards.length;i++) if(repGuards[i]) all.push(repGuards[i]);
+  return all;
+}
+function addRep(){repGuards.push('');renderRepArea();}
+function removeRep(i){repGuards.splice(i,1);renderRepArea();buildAtt();calcInvoice();}
+function renderRepArea(){
+  var html='';
+  for(var i=0;i<repGuards.length;i++){
+    html+='<div class="frow" style="align-items:center;margin-bottom:8px">'+
+      '<div class="field"><label>Replacement Guard '+(i+1)+'</label>'+
+      '<input id="rep-'+i+'" value="'+(repGuards[i]||'')+'" placeholder="Enter name" oninput="repGuards['+i+']=this.value;buildAtt();calcInvoice();"></div>'+
+      '<button class="rem-btn" onclick="removeRep('+i+')">✕</button></div>';
+  }
+  document.getElementById('rep-area').innerHTML=html;
+}
+
+function calcDuties(m, y, guards){
+  var days=getDays(m,y); var gc=guards.length;
+  var totalPresent=0;
+  for(var gi=0;gi<gc;gi++)
+    for(var d=1;d<=days;d++)
+      if((attData['g'+gi+'_'+d]||'P')==='P') totalPresent++;
+  return totalPresent;
+}
+
+function toggleAtt(d,gi){
+  attData['g'+gi+'_'+d]=(attData['g'+gi+'_'+d]==='A')?'P':'A';
+  buildAtt();
+}
+
+
+// ===== LANDSCAPE ATTENDANCE (A4 landscape, 1123 x 794 px page) =====
+var _vcache={};
+function vText(text,w,h,fpx,bold){
+  // draws text rotated 90 deg clockwise (reads top to bottom) into an image, so it works in preview and in the PDF
+  var key=[text,w,h,fpx,bold].join('|');
+  if(_vcache[key]) return _vcache[key];
+  var sc=3, c=document.createElement('canvas'); c.width=w*sc; c.height=h*sc;
+  var x=c.getContext('2d'); x.scale(sc,sc); x.translate(w/2,h/2); x.rotate(Math.PI/2);
+  x.font=(bold?'bold ':'')+fpx+'px Arial, Helvetica, sans-serif'; x.fillStyle='#111'; x.textAlign='center'; x.textBaseline='middle';
+  x.fillText(text,0,0);
+  return (_vcache[key]=c.toDataURL('image/png'));
+}
+function buildAttHTML(forPrint){
+  var m=parseInt(document.getElementById('s-month').value);
+  var y=parseInt(document.getElementById('s-year').value)||2026;
+  var days=getDays(m,y);
+  var loc=(document.getElementById('s-location').value||'').toUpperCase();
+  var guards=getAllGuards(); var gc=guards.length;
+  if(gc===0) return '<div style="padding:20px;color:#cc0000;">Please add at least one guard.</div>';
+
+  var PW=1123, PH=794, M=26;             // page size and margin (px)
+  var innerW=PW-2*M;
+  var titleH=96, unitH=92, dateH=92, dayH=100;
+  var siW=70, nameW=170;
+  var dayColW=(innerW-siW-nameW)/days;
+  var avail=PH-2*M-titleH-unitH-dateH-dayH-6;
+  var rowH=Math.min(130,Math.floor(avail/gc));
+  var B='1.5px solid #111', G='#eeeeee';
+  var cw=Math.floor(dayColW*100)/100;
+
+  var h='<div style="width:'+PW+'px;height:'+PH+'px;background:#fff;padding:'+M+'px;font-family:Arial,Helvetica,sans-serif;color:#111;box-sizing:border-box;">'+
+    '<div style="border:2px solid #111;border-bottom:none;height:'+titleH+'px;display:flex;align-items:center;justify-content:center;font-family:Impact,\'Arial Black\',Arial,sans-serif;font-weight:900;font-size:64px;letter-spacing:1px;line-height:1;">SRINIVAS SERVICES</div>'+
+    '<div style="border:2px solid #111;border-bottom:none;height:'+unitH+'px;display:flex;">'+
+      '<div style="width:'+(siW+nameW)+'px;border-right:'+B+';padding:3px 5px;font-weight:700;font-size:20px;">NAME OF THE UNIT</div>'+
+      '<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:Impact,\'Arial Black\',Arial,sans-serif;font-weight:900;font-size:'+(loc.length>20?52:62)+'px;line-height:1;">'+loc+'</div>'+
+    '</div>'+
+    '<table style="width:'+innerW+'px;border-collapse:collapse;table-layout:fixed;border:2px solid #111;">'+
+    '<colgroup><col style="width:'+siW+'px"><col style="width:'+nameW+'px">';
+  for(var d=1;d<=days;d++) h+='<col style="width:'+cw+'px">';
+  h+='</colgroup><tbody>';
+  // header row 1: Sl.no, name (rowspan 2) + dates
+  var cell='border:1px solid #111;background:'+G+';padding:0;';
+  h+='<tr style="height:'+dateH+'px"><td style="'+cell+'vertical-align:top;font-size:24px;padding:6px 8px;">Sl.no</td>'+
+     '<td rowspan="2" style="'+cell+'vertical-align:top;font-size:22px;padding:6px 8px;line-height:1.3;">Name of<br>the Security<br>Guards</td>';
+  for(var d=1;d<=days;d++){
+    var ds=d+'/'+MS[m-1]+'/'+(''+y).slice(-2);
+    h+='<td style="'+cell+'text-align:center;"><img src="'+vText(ds,Math.round(cw),dateH,17,false)+'" style="display:block;width:'+Math.round(cw)+'px;height:'+dateH+'px;margin:0 auto"></td>';
+  }
+  h+='</tr><tr style="height:'+dayH+'px"><td style="'+cell+'"></td>';
+  for(var d=1;d<=days;d++){
+    var di=new Date(y,m-1,d).getDay();
+    h+='<td style="'+cell+'text-align:center;"><img src="'+vText(DN[di],Math.round(cw),dayH,17,false)+'" style="display:block;width:'+Math.round(cw)+'px;height:'+dayH+'px;margin:0 auto"></td>';
+  }
+  h+='</tr>';
+  for(var gi=0;gi<gc;gi++){
+    h+='<tr style="height:'+rowH+'px"><td style="'+cell+'font-size:30px;padding-left:10px;">'+(gi+1)+'</td>'+
+       '<td style="'+cell+'font-size:'+(guards[gi].length>16?20:26)+'px;padding:4px 8px;line-height:1.2;word-wrap:break-word;">'+guards[gi]+'</td>';
+    for(var d=1;d<=days;d++){
+      var st=attData['g'+gi+'_'+d]||'P';
+      var col=st==='A'?'#cc0000':'#111';
+      if(forPrint) h+='<td style="'+cell+'text-align:center;font-size:30px;color:'+col+';">'+st+'</td>';
+      else h+='<td style="'+cell+'text-align:center;"><button class="btn-'+st+'" style="font-size:26px" onclick="toggleAtt('+d+','+gi+')">'+st+'</button></td>';
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function applyAttScale(){
+  var outer=document.getElementById('att-scale-outer'), inner=document.getElementById('att-scale-inner');
+  if(outer&&inner&&outer.offsetWidth>0){
+    var sc=Math.min(1,outer.offsetWidth/1123);
+    inner.style.transform='scale('+sc+')';
+    outer.style.height=Math.round(794*sc)+'px';
+  }
+}
+
+function buildAtt(){
+  var m=parseInt(document.getElementById('s-month').value);
+  var y=parseInt(document.getElementById('s-year').value)||2026;
+  var days=getDays(m,y);
+  var guards=getAllGuards(); var gc=guards.length;
+  for(var d=1;d<=days;d++) for(var gi=0;gi<gc;gi++) if(attData['g'+gi+'_'+d]===undefined) attData['g'+gi+'_'+d]='P';
+  document.getElementById('att-sheet').innerHTML=buildAttHTML(false);
+  applyAttScale();
+  var sh='';
+  for(var gi=0;gi<gc;gi++){
+    var p=0,a=0;
+    for(var d=1;d<=days;d++){attData['g'+gi+'_'+d]==='A'?a++:p++;}
+    sh+='<div><strong>'+guards[gi]+':</strong> Present: '+p+' | Absent: '+a+'</div>';
+  }
+  document.getElementById('att-summary').innerHTML=sh;
+}
+
+function calcInvoice(){
+  var m=parseInt(document.getElementById('s-month').value);
+  var y=parseInt(document.getElementById('s-year').value)||2026;
+  var days=getDays(m,y);
+  var rate=parseInt(document.getElementById('s-rate').value)||11000;
+  var guards=getAllGuards(); var gc=guards.length;
+  var gc=2;                       // invoice is always for 2 guards
+  var totalDuties=2*days;         // fixed: 2 guards x every day of the month
+  var ratePerDay=rate/days;
+  var net=2*rate;                 // fixed: always 2 x monthly rate
+  document.getElementById('pv-persons').textContent=gc;
+  document.getElementById('pv-rate-month').textContent=rate.toLocaleString('en-IN')+'.00';
+  document.getElementById('pv-working-days').textContent=days;
+  document.getElementById('pv-duties').textContent=totalDuties;
+  document.getElementById('pv-rate-day').textContent=ratePerDay.toFixed(2);
+  document.getElementById('pv-net-amt').textContent=net.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('pv-total').textContent=net.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  var netInt=Math.floor(net);
+  var netPaisa=Math.round((net-netInt)*100);
+  var wordsStr='Rupees '+numWords(netInt)+(netPaisa>0?' and Paisa '+numWords(netPaisa):' and Paisa Nil')+' Only';
+  document.getElementById('pv-words').innerHTML='<span class="inv-words-label">Amount in Words:</span>'+wordsStr;
+}
+function refreshAll(){buildAtt();calcInvoice();}
+function updateAll(){
+  var m=parseInt(document.getElementById('s-month').value);
+  var y=parseInt(document.getElementById('s-year').value)||2026;
+  var days=getDays(m,y); var nm=m===12?1:m+1; var ny=m===12?y+1:y;
+  document.getElementById('pv-phone').textContent=document.getElementById('s-phone').value;
+  document.getElementById('pv-client-name').textContent=document.getElementById('s-client-name').value;
+  document.getElementById('pv-client-addr').innerHTML=(function(){var parts=document.getElementById('s-client-addr').value.split(',').map(function(s){return s.trim();});return parts.map(function(p,i){return p+(i<parts.length-1?',':'');}).join('<br>');})();
+  document.getElementById('pv-inv-date').textContent='01 - '+pad(nm)+' - '+ny;
+  document.getElementById('pv-period-from').textContent='01 - '+MS[m-1]+' - '+y;
+  document.getElementById('pv-period-to').textContent=days+' - '+MS[m-1]+' - '+y;
+  document.getElementById('pv-month').textContent=MN[m-1]+' - '+y;
+  document.getElementById('pv-cheque-name').textContent=document.getElementById('s-cheque').value;
+  if(Object.keys(attData).length>0 && !confirm('Changing the month/year will clear all attendance data. Continue?')) {
+    // Revert selects to previous values by re-reading from the preview text — simpler: just return
+    return;
+  }
+  attData={}; buildAtt(); calcInvoice();
+}
+
+var activeTab='invoice';
+function switchTab(tab){
+  activeTab=tab;
+  ['invoice','attendance','settings'].forEach(function(t){
+    document.getElementById('tab-'+t).style.display=t===tab?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach(function(t,i){
+    t.classList.toggle('active',['invoice','attendance','settings'][i]===tab);
+  });
+  applyScale();applyAttScale();
+  setTimeout(function(){applyScale();applyAttScale();},100);
+}
+
+function applyScale(){
+  var outer=document.getElementById('inv-scale-outer');
+  var inner=document.getElementById('inv-scale-inner');
+  var page=document.getElementById('invoice-preview');
+  if(outer&&inner&&page&&outer.offsetWidth>0){
+    var avail=outer.offsetWidth;
+    var nat=page.offsetWidth||794;
+    var sc=Math.min(1,avail/nat);
+    inner.style.transform='scale('+sc+')';
+    inner.style.width=nat+'px';
+    outer.style.height=Math.round(page.offsetHeight*sc)+'px';
+  }
+}
+
+function getPrintStyles(){
+  return '*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'+
+    'button{font-family:Arial,sans-serif;color:inherit;background:none;border:none;}'+
+    'body{background:white;font-family:Arial,sans-serif;margin:0;padding:0;}'+
+    '.inv-page{background:white;width:210mm;height:297mm;max-height:297mm;display:flex;flex-direction:column;font-family:Arial,sans-serif;color:#111;overflow:hidden;position:relative;}'+
+    '.inv-hdr{background:#111;display:flex;align-items:center;padding:10mm 12mm 8mm 12mm;flex-shrink:0;position:relative;gap:16px;}'+
+    '.inv-hdr-left{display:flex;align-items:center;gap:16px;flex:1;}'+
+    '.inv-brand-name{font-size:44px;font-weight:900;letter-spacing:3px;color:white;line-height:1;font-family:Arial Black,Arial,sans-serif;}'+
+    '.inv-brand-services{font-size:14px;font-weight:700;letter-spacing:12px;color:#f97316;margin-top:4px;}'+
+    '.inv-brand-phone{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:14px;color:#ccc;font-weight:600;}'+
+    '.inv-hdr-orange{position:absolute;top:0;right:0;width:180px;height:100%;background:#f97316 !important;clip-path:polygon(35% 0%,100% 0%,100% 100%,0% 100%);}'+
+    '.inv-hdr-subbar{height:6px;background:#f97316 !important;flex-shrink:0;}'+
+    '.inv-body{margin:6mm 12mm 0;border:2px solid #111;flex-shrink:0;}'+
+    '.inv-client-date{display:flex;border-bottom:2px solid #111;}'+
+    '.inv-client{flex:1;padding:14px 16px;border-right:2px solid #111;}'+
+    '.inv-client-label{font-size:11px;color:#f97316;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}'+
+    '.inv-client-name{font-size:20px;font-weight:900;color:#111;font-family:Arial Black,Arial,sans-serif;}'+
+    '.inv-client-addr{font-size:13px;color:#333;margin-top:6px;line-height:1.8;}'+
+    '.inv-date-col{padding:14px 16px;min-width:260px;display:flex;flex-direction:column;justify-content:center;gap:10px;}'+
+    '.inv-date-title{font-size:15px;font-weight:900;color:#111;letter-spacing:0.3px;}'+
+    '.inv-period-row{display:flex;align-items:stretch;border:2px solid #f97316;width:fit-content;border-radius:4px;overflow:hidden;}'+
+    '.inv-period-label{background:#f97316 !important;color:white;padding:7px 14px;font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;letter-spacing:0.5px;}'+
+    '.inv-period-from{padding:7px 14px;font-size:11px;font-weight:700;border-right:1.5px solid #f97316;display:flex;align-items:center;color:#f97316;}'+
+    '.inv-period-sep{padding:7px 10px;font-size:10px;font-weight:900;border-right:1.5px solid #f97316;display:flex;align-items:center;color:#f97316;background:#fff8f3 !important;}'+
+    '.inv-period-to{padding:7px 14px;font-size:11px;font-weight:700;display:flex;align-items:center;color:#f97316;}'+
+    '.inv-notice{padding:14px 16px;font-size:13px;color:#333;border-bottom:2px solid #111;line-height:1.7;background:#fffaf6 !important;}'+
+    '.inv-table{width:100%;border-collapse:collapse;}'+
+    '.inv-table th{font-size:11px;font-weight:700;padding:12px 6px;border-right:1.5px solid #fff;text-align:center;color:white;line-height:1.5;background:#111 !important;text-transform:uppercase;}'+
+    '.inv-table th:last-child{border-right:none;}'+
+    '.inv-table td{font-size:15px;padding:40px 6px;border-right:1.5px solid #111;text-align:center;color:#111;font-weight:500;}'+
+    '.inv-table td:nth-child(2){text-align:left;padding-left:12px;}'+
+    '.inv-table td:last-child{border-right:none;}'+
+    '.inv-bottom{display:flex;border-top:2px solid #111;}'+
+    '.inv-cheque-area{flex:1;padding:32px 16px;border-right:2px solid #111;display:flex;flex-direction:column;justify-content:center;}'+
+    '.inv-cheque-line1{font-size:13px;color:#555;}'+
+    '.inv-cheque-name{font-size:22px;font-weight:900;color:#f97316;margin-top:6px;font-family:Arial Black,Arial,sans-serif;}'+
+    '.inv-total-area{display:flex;flex-direction:row;min-width:230px;}'+
+    '.inv-total-label{font-size:20px;font-weight:900;color:white;background:#111 !important;flex:1;display:flex;align-items:center;justify-content:center;padding:32px 10px;border-right:2px solid #f97316;}'+
+    '.inv-total-amt{font-size:20px;font-weight:900;color:white;background:#f97316 !important;min-width:120px;display:flex;align-items:center;justify-content:center;padding:32px 10px;}'+
+    '.inv-words-row{border-top:2px solid #111;padding:14px 16px;text-align:center;font-size:13px;color:#111;font-weight:500;background:#fffaf6 !important;}'+
+    '.inv-words-label{font-weight:700;color:#f97316;margin-right:6px;}'+
+    '.inv-sign{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;padding:16px 14mm 14px;gap:18px;font-size:14px;color:#111;font-weight:600;}'+
+    '.inv-footer{display:flex;height:20px;flex-shrink:0;margin-top:auto;}'+
+    '.inv-footer .fo{flex:2;background:#f97316 !important;}'+
+    '.inv-footer .fb{flex:1;background:#111 !important;}'+
+    '.att-page{background:white;width:210mm;height:297mm;max-height:297mm;font-family:Arial,sans-serif;color:#111;display:flex;padding:10mm;overflow:hidden;position:relative;}'+
+    '.att-side{display:flex;flex-direction:row;border:2px solid #111;width:100%;height:277mm;overflow:hidden;}'+
+    '.att-vtitle{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-size:22px;font-weight:900;letter-spacing:5px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;padding:6px 4px;border-right:2px solid #111;color:#111;white-space:nowrap;font-family:Arial Black,Arial,sans-serif;flex-shrink:0;}'+
+    '.att-main{flex:1;overflow:hidden;height:100%;}'+
+    'table.att-tbl{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;border:none;}'+
+    'table.att-tbl td{border-top:none;border-left:none;border-right:1px solid #555;border-bottom:1px solid #555;font-size:9px;color:#111;text-align:center;padding:0 2px;line-height:1;}'+
+    'table.att-tbl tr td:last-child{border-right:none;}'+
+    'table.att-tbl tr:last-child td{border-bottom:none;}'+
+    'td.td-date{text-align:left;padding-left:4px;font-weight:600;white-space:nowrap;}'+
+    'td.td-day{text-align:left;padding-left:2px;}'+
+    'td.sunday{background:#d0d0d0 !important;}'+
+    'tr.ft-row td{border-top:none;border-left:none;border-right:1px solid #111;border-bottom:1px solid #111;background:#f2f2f2 !important;padding:0;overflow:hidden;}'+
+    'tr.ft-row td:last-child{border-right:none;}'+
+    'tr.ft-row:last-child td{border-bottom:none;}'+
+    '.ft-inner{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-weight:700;font-size:8px;color:#111;display:flex;align-items:center;justify-content:center;padding:2px 1px;width:100%;height:100%;overflow:hidden;}'+
+    '.ft-inner.big{font-size:11px;font-weight:900;}'+
+    '.ft-inner.guard{font-size:8px;font-weight:700;white-space:normal;text-align:center;line-height:1.2;overflow:hidden;}'+
+    '.ft-inner.small{font-size:7px;font-weight:500;white-space:normal;text-align:center;line-height:1.2;overflow:hidden;}';
+}
+
+function printDoc(){
+  var btn=document.querySelector('.btn-dl');
+  var origText=btn.innerHTML;
+  btn.innerHTML='⏳ Generating PDF...';
+  btn.disabled=true;
+
+  // Gather all data fresh
+  var m=parseInt(document.getElementById('s-month').value);
+  var y=parseInt(document.getElementById('s-year').value)||2026;
+  var days=getDays(m,y);
+  var rate=parseInt(document.getElementById('s-rate').value)||11000;
+  var guards=getAllGuards(); var gc=guards.length;
+  var nm=m===12?1:m+1; var ny=m===12?y+1:y;
+
+  var totalDuties=2*days;
+  var ratePerDay=rate/days;
+  var net=2*rate;
+  gc=2;
+
+  var phone=document.getElementById('s-phone').value;
+  var clientName=document.getElementById('s-client-name').value;
+  var clientAddr=(function(){var parts=document.getElementById('s-client-addr').value.split(',').map(function(s){return s.trim();});return parts.map(function(p,i){return p+(i<parts.length-1?',':'');}).join('<br>');})();
+  var cheque=document.getElementById('s-cheque').value;
+  var loc=document.getElementById('s-location').value;
+
+  var logo=
+    '<svg width="80" height="80" viewBox="0 0 80 80" fill="none">'+
+    '<ellipse cx="40" cy="28" rx="16" ry="18" fill="#fcd9b0"/>'+
+    '<ellipse cx="24" cy="29" rx="4" ry="5" fill="#fcd9b0"/>'+
+    '<ellipse cx="56" cy="29" rx="4" ry="5" fill="#fcd9b0"/>'+
+    '<rect x="14" y="14" width="52" height="8" rx="3" fill="#f97316"/>'+
+    '<rect x="22" y="4" width="36" height="14" rx="3" fill="#f97316"/>'+
+    '<rect x="34" y="7" width="12" height="7" rx="2" fill="white"/>'+
+    '<rect x="18" y="44" width="44" height="28" rx="6" fill="#f97316"/>'+
+    '<rect x="30" y="44" width="20" height="10" rx="2" fill="#111"/>'+
+    '<rect x="34" y="58" width="12" height="7" rx="2" fill="white"/>'+
+    '<circle cx="40" cy="52" r="2" fill="#ffd700"/>'+
+    '</svg>';
+
+  var invH=
+    '<div class="inv-page">'+
+    '<div class="inv-hdr"><div class="inv-hdr-left">'+
+    logo+
+    '<div><div class="inv-brand-name">SRINIVAS</div>'+
+    '<div class="inv-brand-services">SERVICES</div>'+
+    '<div class="inv-brand-phone">&#9990; '+phone+'</div></div></div>'+
+    '<div class="inv-hdr-orange"></div></div>'+
+    '<div class="inv-hdr-subbar"></div>'+
+    '<div class="inv-body">'+
+    '<div class="inv-client-date">'+
+    '<div class="inv-client"><div class="inv-client-label">INVOICE TO:</div>'+
+    '<div class="inv-client-name">'+clientName+'</div>'+
+    '<div class="inv-client-addr">'+clientAddr+'</div></div>'+
+    '<div class="inv-date-col">'+
+    '<div class="inv-date-title">Invoice Date : 01 - '+pad(nm)+' - '+ny+'</div>'+
+    '<div class="inv-period-row">'+
+    '<div class="inv-period-label">Invoice Period</div>'+
+    '<div class="inv-period-from">01 - '+MS[m-1]+' - '+y+'</div>'+
+    '<div class="inv-period-sep">TO</div>'+
+    '<div class="inv-period-to">'+days+' - '+MS[m-1]+' - '+y+'</div>'+
+    '</div></div></div>'+
+    '<div class="inv-notice">We are presenting our bill for the month of '+MN[m-1]+' - '+y+' towards our Security Services provided at your establishment. Kindly release the payment at the earliest.</div>'+
+    '<table class="inv-table"><thead><tr>'+
+    '<th style="width:7%">S.NO</th><th style="width:17%">CATEGORIES OF<br>PERSONNEL</th>'+
+    '<th style="width:12%">TOTAL<br>NO. OF<br>PERSONS</th><th style="width:12%">RATE PER<br>MONTH</th>'+
+    '<th style="width:10%">WORKING<br>DAYS</th><th style="width:12%">NUMBER<br>OF DUTIES</th>'+
+    '<th style="width:14%">RATE PER<br>DAY/PERSON</th><th style="width:16%">NET AMOUNT<br>(Rs.)</th>'+
+    '</tr></thead><tbody><tr>'+
+    '<td>01</td><td>Security<br>Guards</td><td>'+gc+'</td>'+
+    '<td>'+rate.toLocaleString('en-IN')+'.00</td>'+
+    '<td>'+days+'</td><td>'+totalDuties+'</td>'+
+    '<td>'+ratePerDay.toFixed(2)+'</td>'+
+    '<td>'+net.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'+
+    '</tr></tbody></table>'+
+    '<div class="inv-bottom">'+
+    '<div class="inv-cheque-area"><div class="inv-cheque-line1">Please issue a cheque in favour of</div>'+
+    '<div class="inv-cheque-name">'+cheque+'</div></div>'+
+    '<div class="inv-total-area">'+
+    '<div class="inv-total-label">TOTAL</div>'+
+    '<div class="inv-total-amt">'+net.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'+
+    '</div></div>'+
+    '<div class="inv-words-row"><span class="inv-words-label">Amount in Words:</span>Rupees '+numWords(Math.floor(net))+(Math.round((net-Math.floor(net))*100)>0?' and Paisa '+numWords(Math.round((net-Math.floor(net))*100)):' and Paisa Nil')+' Only</div>'+
+    '</div>'+
+    '<div class="inv-sign"><div>For SRINIVAS SERVICES</div><div>Authorised Signature</div></div>'+
+    '<div class="inv-footer"><div class="fo"></div><div class="fb"></div></div>'+
+    '</div>';
+
+  var attH=buildAttHTML(true);
+
+  function doGenerate(){
+    // Inject print styles temporarily
+    var styleEl=document.createElement('style');
+    styleEl.id='_pdf_styles';
+    styleEl.textContent=getPrintStyles();
+    document.head.appendChild(styleEl);
+
+    // Create off-screen render container
+    var wrap=document.createElement('div');
+    wrap.id='_pdf_wrap';
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:1123px;z-index:-1;background:white;';
+    wrap.innerHTML=
+      '<div id="_pdf_p1" style="width:794px;height:1123px;overflow:hidden;background:white;">'+invH+'</div>'+
+      '<div id="_pdf_p2" style="width:1123px;height:794px;overflow:hidden;background:white;margin-top:20px;">'+attH+'</div>';
+    document.body.appendChild(wrap);
+
+    // Pre-process vertical text elements in main doc (offsetWidth/Height work here)
+    function drawVerticalCanvas(el){
+      var W=el.offsetWidth;
+      var H=el.offsetHeight;
+      if(!W||!H) return;
+      var txt=(el.innerText||el.textContent||'').trim();
+      var isVtitle=el.classList.contains('att-vtitle');
+      var isBig=el.classList.contains('big');
+      var isSmall=el.classList.contains('small');
+      var fsize=isVtitle?22:isBig?11:isSmall?7:8;
+      var ffamily=isVtitle?'"Arial Black",Arial,sans-serif':'Arial,sans-serif';
+      var lspacing=isVtitle?4:0;
+
+      var cvs=document.createElement('canvas');
+      cvs.width=W*2; cvs.height=H*2;
+      cvs.style.cssText='width:'+W+'px;height:'+H+'px;display:block;';
+      var ctx=cvs.getContext('2d');
+      ctx.scale(2,2);
+      ctx.translate(W/2,H/2);
+      ctx.rotate(-Math.PI/2); // 90° CCW → text reads bottom-to-top
+      ctx.font='bold '+fsize+'px '+ffamily;
+      ctx.fillStyle='#111';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+
+      var lines=txt.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      if(!lines.length) lines=[txt||''];
+      var lh=fsize*1.4;
+      var totalH=(lines.length-1)*lh;
+
+      // After rotation, text width must fit within canvas H — auto-scale down if needed
+      var maxTextW=lines.reduce(function(m,l){return Math.max(m,ctx.measureText(l).width);},0);
+      var availH=H - 4; // 2px padding each side
+      if(maxTextW+totalH > availH){
+        var scale=availH/(maxTextW+totalH);
+        fsize=Math.floor(fsize*scale);
+        lh=fsize*1.4;
+        totalH=(lines.length-1)*lh;
+        ctx.font='bold '+fsize+'px '+ffamily;
+      }
+      lines.forEach(function(line,i){
+        if(lspacing>0){
+          var chars=line.split('');
+          var cw=chars.map(function(c){return ctx.measureText(c).width;});
+          var totalW=cw.reduce(function(a,b){return a+b;},0)+(chars.length-1)*lspacing;
+          var cx=-totalW/2;
+          chars.forEach(function(c,ci){
+            ctx.fillText(c,cx+cw[ci]/2,-totalH/2+i*lh);
+            cx+=cw[ci]+lspacing;
+          });
+        } else {
+          ctx.fillText(line,0,-totalH/2+i*lh);
+        }
+      });
+
+      el.style.cssText='writing-mode:horizontal-tb;transform:none;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden;width:'+W+'px;height:'+H+'px;flex-shrink:0;box-sizing:border-box;';
+      el.innerHTML='';
+      el.appendChild(cvs);
+    }
+
+    // Force layout reflow then draw canvases
+    void wrap.offsetWidth;
+    
+
+    var opts={scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,width:794,height:1123};
+
+    html2canvas(document.getElementById('_pdf_p1'),opts).then(function(c1){
+      return html2canvas(document.getElementById('_pdf_p2'),{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,width:1123,height:794}).then(function(c2){
+        var pdf=new window.jspdf.jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
+        pdf.addImage(c1.toDataURL('image/jpeg',0.97),'JPEG',0,0,210,297);
+        pdf.addPage('a4','l');
+        pdf.addImage(c2.toDataURL('image/jpeg',0.97),'JPEG',0,0,297,210);
+
+        var fname='Srinivas Services - '+clientName.replace(/[\/\\:*?"<>|]/g,'-')+' - '+MN[m-1]+' '+y+'.pdf';
+        pdf.save(fname);
+
+        // Cleanup
+        document.body.removeChild(wrap);
+        document.head.removeChild(styleEl);
+        btn.innerHTML=origText;
+        btn.disabled=false;
+      });
+    }).catch(function(e){
+      document.body.removeChild(wrap);
+      document.head.removeChild(styleEl);
+      alert('Error generating PDF: '+e.message);
+      btn.innerHTML=origText;
+      btn.disabled=false;
+    });
+  }
+
+  function loadScript(src,cb,errcb){
+    var s=document.createElement('script');
+    s.src=src;
+    s.onload=cb;
+    s.onerror=errcb;
+    document.head.appendChild(s);
+  }
+
+  function onError(){
+    alert('Failed to load PDF library. Please check internet connection and try again.');
+    btn.innerHTML=origText;
+    btn.disabled=false;
+  }
+
+  if(window.html2canvas&&window.jspdf){
+    doGenerate();
+  } else if(window.html2canvas){
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',doGenerate,onError);
+  } else {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',function(){
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',doGenerate,onError);
+    },onError);
+  }
+}
+
+
+updateAll();
+applyScale();applyAttScale();
+window.addEventListener('resize', function(){applyScale();applyAttScale();});
+</script>
+</body>
+</html>
